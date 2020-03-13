@@ -621,8 +621,7 @@ def main(args):
         torch.cuda.empty_cache()        
 
     except KeyboardInterrupt:
-        torch.save(g_net.state_dict(), 'INTERRUPTED_g_net.pth')
-        print('SQUAWK!!!!!!! Saved interrupt in the old style of code')
+        print('Code Interrupted!')
         try:
             sys.exit(0)
         except SystemExit:

@@ -1,6 +1,6 @@
 from .unet_parts import *
 
-class GeneratorUnet1_1(nn.Module): # One single encoder branch, one decoder branch with just two final layers for image generation
+class GeneratorUnet1_1(nn.Module): # One single encoder branch, one decoder branch
     def __init__(self, in_chans, out_chans, chans, normalization):
         super(GeneratorUnet1_1, self).__init__()
 

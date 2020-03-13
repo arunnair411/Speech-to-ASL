@@ -176,7 +176,10 @@ def create_data_loaders(params):
     # return data_loader    
     chosen_dataset, dataset_deets, req_filenames_dict = create_datasets(params)
     # display_data = [val_data[i] for i in range(0, len(val_data), len(val_data) // 16)] 
-    display_data = [chosen_dataset[i] for i in range(0, len(chosen_dataset), len(chosen_dataset) // 64)] 
+    if params['no_visualization']:
+        display_data = [chosen_dataset[i] for i in range(0, len(chosen_dataset), len(chosen_dataset) // 1)]
+    else:
+        display_data = [chosen_dataset[i] for i in range(0, len(chosen_dataset), len(chosen_dataset) // 64)] 
     
     data_loader = DataLoader(dataset=chosen_dataset, batch_size=params['test_batch_size'],
                                 num_workers= 2*len(params['gpu_ids']), pin_memory=True) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
@@ -210,8 +213,14 @@ def parse_args(args):
     parser.add_argument('--checkpoint', type=pathlib.Path, required=True,
                         help='Path to an existing checkpoint. Required for testing.')
     ## Parameters to update less often
+    parser.add_argument('--no-visualization', action='store_true', default=False,
+                        help='Disables visualization of the outputs; Also adjusts display_data step size to prevent errors')
+    parser.add_argument('--no-neuron-visualization', action='store_true', default=False,
+                        help='Disables visualization of the neurons ')
+    parser.add_argument('--no-model-copy', action='store_true', default=False,
+                        help='Disables copying the model to the results directory')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N_T',
-                        help='Input mini-batch size for testing (default: 1000)')                        
+                        help='Input mini-batch size for testing (default: 1000)')
     parser.add_argument('--test-rows', type=int, default=128, metavar='R',
                         help='Number of rows in the test data inputs (default: 128)')
     parser.add_argument('--test-cols', type=int, default=128, metavar='C',
@@ -230,6 +239,9 @@ def create_params_dict(parsed_args, device):
     params['results_dir']     = os.path.join("results",parsed_args.store_dir)       # Directory in which to store the output images as mat files
     params['save_test_val_results'] = parsed_args.save_test_val_results # Whether to save val and test outputs as .mat files
     params['checkpoint']      = parsed_args.checkpoint                  # Directory from which the model is being loaded if its being loaded; false otherwise
+    params['no_visualization']          = parsed_args.no_visualization            # Whether to run visualization of the neurons and outputs; Also adjusts display_data step size to prevent errors
+    params['no_neuron_visualization']   = parsed_args.no_neuron_visualization            # Whether to run visualization of the neurons and outputs; Also adjusts display_data step size to prevent errors
+    params['no_model_copy']             = parsed_args.no_model_copy               # Whether to disable copying the model to the results directory    
     params['test_batch_size'] = parsed_args.test_batch_size             # Number of testing files in one mini-batch - can be much larger since gradient information isn't required
     params['test_rows']       = parsed_args.test_rows                   # Number of rows in the test images
     params['test_cols']       = parsed_args.test_cols                   # Number of columns in the test images
@@ -311,12 +323,16 @@ def main(args):
     # Do the validation/test step
     _score, _time = evaluate(params, dataset_deets, model_epoch, g_net, data_loader, writer, params['data_split'], req_filenames_dict[params['data_split']])
     
-    visualize_neurons(params, model_epoch, g_net, display_loader, writer)
-    visualize(params, model_epoch, g_net, display_loader, writer)
+    if not params['no_neuron_visualization']:
+        visualize_neurons(params, model_epoch, g_net, display_loader, writer)
+    if not params['no_visualization']:
+        visualize(params, model_epoch, g_net, display_loader, writer)
 
-    # Copy the run model file into the results directory
-    os.makedirs(os.path.join(params['results_dir'],'model'), exist_ok=True)
-    shutil.copyfile(parsed_args.checkpoint, os.path.join(os.path.join(params['results_dir'],'model','copied_model.pt')))
+    if not params['no_model_copy']:
+        os.makedirs(os.path.join(params['results_dir'],'model'), exist_ok=True)
+        # Copy the run model file into the results directory        
+        shutil.copyfile(parsed_args.checkpoint, os.path.join(os.path.join(params['results_dir'],'model','copied_model.pt')))    
+
     # Save the test argparse into the results directory
     save_file_string  = os.path.join(params['results_dir'], 'testing_deets.txt')
     with open(save_file_string, 'w+') as f: # we don't have to write "file.close()". That will automatically be called.

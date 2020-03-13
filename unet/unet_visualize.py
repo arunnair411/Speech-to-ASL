@@ -133,6 +133,7 @@ def initialize_hooks_for_visualization(params, g_net):
 # maps may be all zero **for many different inputs**, which can indicate dead filters, and can be a 
 # symptom of high learning rates.
 # Activations ARE often naturally sparse...
+# https://towardsdatascience.com/visualizing-convolution-neural-networks-using-pytorch-3dfa8443e74e        
 def visualize_neurons(params, epoch, g_net, data_loader, writer):
     def save_image(image, tag, nrow):
         image -= image.min()
