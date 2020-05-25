@@ -49,7 +49,7 @@ class GeneratorUnet1_1_FAIR(nn.Module):
         computing and computer-assisted intervention, pages 234–241. Springer, 2015.
     """
 
-    def __init__(self, in_chans, out_chans, chans,normalization,  num_pool_layers=4):
+    def __init__(self, in_chans, out_chans, chans, normalization, num_pool_layers=4):
         """
         Args:
             in_chans (int): Number of channels in the input to the U-Net model.

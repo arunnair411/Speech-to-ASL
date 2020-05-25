@@ -76,6 +76,7 @@ from utils import eval_net
 # -------------------------------------------------------------------------------------------------
 ## Evaluation function for val/test data
 def evaluate(params, dataset_deets, epoch, g_net, data_loader, writer, data_string, req_filenames):
+
     print('-'*80)
     print('Set the neural network to testing mode...')
     print('-'*80)
@@ -233,20 +234,20 @@ def parse_args(args):
 ## Convert parsed arguments to a dict for more easy manipulation
 def create_params_dict(parsed_args, device):
     params = {}
-    params['gpu_ids']         = parsed_args.gpu_ids                     # ids of GPUs being used
-    params['dataset']         = parsed_args.dataset                     # Which dataset to processs
-    params['data_split']      = parsed_args.data_split                  # Which data partition to run on: "val" or "test"
-    params['results_dir']     = os.path.join("results",parsed_args.store_dir)       # Directory in which to store the output images as mat files
-    params['save_test_val_results'] = parsed_args.save_test_val_results # Whether to save val and test outputs as .mat files
-    params['checkpoint']      = parsed_args.checkpoint                  # Directory from which the model is being loaded if its being loaded; false otherwise
+    params['gpu_ids']                   = parsed_args.gpu_ids                     # ids of GPUs being used
+    params['dataset']                   = parsed_args.dataset                     # Which dataset to processs
+    params['data_split']                = parsed_args.data_split                  # Which data partition to run on: "val" or "test"
+    params['results_dir']               = os.path.join("results",parsed_args.store_dir)       # Directory in which to store the output images as mat files
+    params['save_test_val_results']     = parsed_args.save_test_val_results       # Whether to save val and test outputs as .mat files
+    params['checkpoint']                = parsed_args.checkpoint                  # Directory from which the model is being loaded if its being loaded; false otherwise
     params['no_visualization']          = parsed_args.no_visualization            # Whether to run visualization of the neurons and outputs; Also adjusts display_data step size to prevent errors
-    params['no_neuron_visualization']   = parsed_args.no_neuron_visualization            # Whether to run visualization of the neurons and outputs; Also adjusts display_data step size to prevent errors
+    params['no_neuron_visualization']   = parsed_args.no_neuron_visualization     # Whether to run visualization of the neurons and outputs; Also adjusts display_data step size to prevent errors
     params['no_model_copy']             = parsed_args.no_model_copy               # Whether to disable copying the model to the results directory    
-    params['test_batch_size'] = parsed_args.test_batch_size             # Number of testing files in one mini-batch - can be much larger since gradient information isn't required
-    params['test_rows']       = parsed_args.test_rows                   # Number of rows in the test images
-    params['test_cols']       = parsed_args.test_cols                   # Number of columns in the test images
-    params['batch_testing_id']= parsed_args.batch_testing_id            # Whether to change output file format to make testing more amenable
-    params['device']          = device                                  # Device to run the code on
+    params['test_batch_size']           = parsed_args.test_batch_size             # Number of testing files in one mini-batch - can be much larger since gradient information isn't required
+    params['test_rows']                 = parsed_args.test_rows                   # Number of rows in the test images
+    params['test_cols']                 = parsed_args.test_cols                   # Number of columns in the test images
+    params['batch_testing_id']          = parsed_args.batch_testing_id            # Whether to change output file format to make testing more amenable
+    params['device']                    = device                                  # Device to run the code on
     
     return params
 
@@ -328,8 +329,8 @@ def main(args):
     if not params['no_visualization']:
         visualize(params, model_epoch, g_net, display_loader, writer)
 
+    os.makedirs(os.path.join(params['results_dir'],'model'), exist_ok=True)
     if not params['no_model_copy']:
-        os.makedirs(os.path.join(params['results_dir'],'model'), exist_ok=True)
         # Copy the run model file into the results directory        
         shutil.copyfile(parsed_args.checkpoint, os.path.join(os.path.join(params['results_dir'],'model','copied_model.pt')))    
 

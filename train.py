@@ -7,8 +7,6 @@
 
 # Low priority TODO:
 # 0) Port visualization to testing code...
-
-
 # # Sampling=0.20
 # CUDA_VISIBLE_DEVICES=0,1 python main.py --gpu-ids 0 1 --dataset=20200102_Sim1 --save-test-val-results --criterion=dscloss --test-rows=128 --test-cols=128 --epochs=40 --adam-lr=3e-4 --log-interval=100 --store-dir=20200102_20200102_Sim1 --test-batch-size=1024 --n-channels=2
 # For testing - CUDA_VISIBLE_DEVICES=0,1 python main.py --gpu-ids 0 1 --dataset=20200102_Sim1 --test-mode --save-test-val-results --load-g-model=checkpoints/20200102_20200102_Sim1/CP040_G_valDice0.970_PSNR38.219.pth --test-rows=128 --test-cols=128  --store-dir=20200103_20200102_Sim1_testOnly --test-batch-size=1024 --n-channels=2
@@ -99,6 +97,7 @@ def train_epoch(params, epoch, g_net, criterion_g, train_loader, optimizer_G, sc
     tot_epochs = params['epochs']
 
     for iterIdx, sample in enumerate(train_loader):
+        # Preprocess the data (if required)
         input_data = sample['input_data']
         target_output = sample['target_output']
 
@@ -249,7 +248,6 @@ def create_datasets(params):
     #     sample_rate=args.sample_rate,
     #     challenge=args.challenge,
     # )
-
     train_data = MyDataset(mat_paths=split_train,
                             transform=transforms.Compose([
                                 RandomHorizontalFlipArun(params['to_flip']/2), #params['to_flip']/2 is 0 or 0.5 - exactly what we want!
@@ -606,8 +604,8 @@ def main(args):
             save_model(parsed_args, params, epoch, g_net, optimizer_G, val_points, best_val_points, is_new_best)
             logging.info(
                 f'Epoch = [{epoch+1:4d}/{tot_epochs:4d}] TrainLoss = {train_loss:.4g} '
-                f'ValPoints = {val_points:.4g} TestPoints = {test_points:.4g}'
-                f' TrainTime = {train_time:.4f}s ValTime = {val_time:.4f}s TestTime = {test_time:.4f}s',
+                f'ValPoints = {val_points:.4g} TestPoints = {test_points:.4g} '
+                f'TrainTime = {train_time:.4f}s ValTime = {val_time:.4f}s TestTime = {test_time:.4f}s',
             )
         # Write network graph to file
         # NOTE: 1) Doesn't work with dataparallel 2) Need to use the FAIR UNet code
