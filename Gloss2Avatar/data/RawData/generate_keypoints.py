@@ -10,7 +10,6 @@ os.makedirs(json_dir, exist_ok=True)
 os.makedirs(pose_npy_dir, exist_ok=True)
 os.chdir("C:\\Users\\t-arnair\\Desktop\\openpose-1.6.0-binaries-win64-gpu-python-flir-3d_recommended\\openpose") # Change to root directory of the keypoint estimator
 for idx, curr_file in enumerate(file_names):
-    pdb.set_trace()
     file_name = os.path.basename(curr_file)
     os.makedirs(os.path.join(json_dir, os.path.splitext(file_name)[0]), exist_ok=True)
     # Enable tracking in the hopes of smoothness and potential higher accuracy (https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/demo_overview.md) - same runtime
