@@ -2,8 +2,10 @@ import os, glob, json
 import numpy as np
 import pdb
 
-reconstructed_mov_dir_avi_path = "C:\\Users\\t-arnair\\Desktop\\ASL\\RawData\\reconstructed_mov_dir_avi"
-file_names = sorted(glob.glob(os.path.join(reconstructed_mov_dir_avi_path,"*.avi")))
+# reconstructed_mov_dir_avi_path = "C:\\Users\\t-arnair\\Desktop\\ASL\\RawData\\openpose_input_videos"
+# file_names = sorted(glob.glob(os.path.join(reconstructed_mov_dir_avi_path,"*.mov")))
+reconstructed_mov_dir_avi_path = "C:\\Users\\t-arnair\\Desktop\\ASL\\RawData\\reconstructed_mov_dir"
+file_names = sorted(glob.glob(os.path.join(reconstructed_mov_dir_avi_path,"*.mov")))
 json_dir = "C:\\Users\\t-arnair\\Desktop\\ASL\\RawData\\json_dir"
 pose_npy_dir = "C:\\Users\\t-arnair\\Desktop\\ASL\\RawData\\pose_npy_dir"
 os.makedirs(json_dir, exist_ok=True)
@@ -13,9 +15,10 @@ for idx, curr_file in enumerate(file_names):
     file_name = os.path.basename(curr_file)
     os.makedirs(os.path.join(json_dir, os.path.splitext(file_name)[0]), exist_ok=True)
     # Enable tracking in the hopes of smoothness and potential higher accuracy (https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/demo_overview.md) - same runtime
-    os.system(f"bin\\OpenPoseDemo.exe --keypoint_scale=3 --tracking 0 --number_people_max 1 --video {curr_file} --face --hand --hand_scale_number 6 --hand_scale_range 0.4 --display=0  --render_pose=0  --write_json={os.path.join(json_dir, os.path.splitext(file_name)[0])}")
+    # os.system(f"bin\\OpenPoseDemo.exe --keypoint_scale=3 --tracking 0 --number_people_max 1 --video {curr_file} --face --hand --hand_scale_number 6 --hand_scale_range 0.4 --display=0  --render_pose=0  --write_json={os.path.join(json_dir, os.path.splitext(file_name)[0])}")
     # Disable tracking
     # os.system(f"bin\\OpenPoseDemo.exe --keypoint_scale=3 --number_people_max 1 --video {curr_file} --face --hand --hand_scale_number 6 --hand_scale_range 0.4 --display=0  --render_pose=0  --write_json={os.path.join(json_dir, os.path.splitext(file_name)[0])}")
+    os.system(f"bin\\OpenPoseDemo.exe --keypoint_scale=3 --number_people_max 1 --video {curr_file} --face --hand --write_json={os.path.join(json_dir, os.path.splitext(file_name)[0])}")
     json_file_names = sorted(glob.glob(os.path.join(json_dir, os.path.splitext(file_name)[0], '*.json')))
     num_frames = len(json_file_names)
     npy_array = np.zeros((25+70+21+21, 3, num_frames)).astype(np.float16) # 25 for pose, 70 for face, 21 for left and, and 21 for right hand
