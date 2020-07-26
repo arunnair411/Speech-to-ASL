@@ -16,7 +16,6 @@ for idx, curr_file in enumerate(file_names):
     os.system(f"bin\\OpenPoseDemo.exe --keypoint_scale=3 --tracking 0 --number_people_max 1 --video {curr_file} --face --hand --hand_scale_number 6 --hand_scale_range 0.4 --display=0  --render_pose=0  --write_json={os.path.join(json_dir, os.path.splitext(file_name)[0])}")
     # Disable tracking
     # os.system(f"bin\\OpenPoseDemo.exe --keypoint_scale=3 --number_people_max 1 --video {curr_file} --face --hand --hand_scale_number 6 --hand_scale_range 0.4 --display=0  --render_pose=0  --write_json={os.path.join(json_dir, os.path.splitext(file_name)[0])}")
-    pdb.set_trace()
     json_file_names = sorted(glob.glob(os.path.join(json_dir, os.path.splitext(file_name)[0], '*.json')))
     num_frames = len(json_file_names)
     npy_array = np.zeros((25+70+21+21, 3, num_frames)).astype(np.float16) # 25 for pose, 70 for face, 21 for left and, and 21 for right hand
