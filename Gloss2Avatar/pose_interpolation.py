@@ -12,7 +12,7 @@ class PoseInterpolation(nn.Module):
   def __init__(self, hidden_dim):
     super(PoseInterpolation, self).__init__()
     self.input_layer = nn.Linear(2*137*3, hidden_dim)
-    self.output_layer = nn.Linear(hidden_dim, 10*137*3)
+    self.output_layer = nn.Linear(hidden_dim, 20*137*3)
     self.act = F.elu
 
   def forward(self, x):
@@ -21,7 +21,7 @@ class PoseInterpolation(nn.Module):
     x = self.input_layer(x)
     x = self.act(x)
     x = self.output_layer(x)
-    x = x.view(batch_size, 10, 137, 3)
+    x = x.view(batch_size, 20, 137, 3)
     return x
 
 class InterpolationDataset(Dataset):
@@ -42,7 +42,8 @@ def train(args, model, device, train_loader, optimizer, epoch):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.mse_loss(output, target)
+        # loss = F.mse_loss(output, target)
+        loss = torch.mean(torch.abs(output - target))
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
@@ -57,7 +58,8 @@ def test(model, device, test_loader):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.mse_loss(output, target, reduction='sum').item()  # sum up batch loss
+            # test_loss += F.mse_loss(output, target, reduction='sum').item()  # sum up batch loss
+            test_loss += torch.sum(torch.abs(output - target)).item()
 
     test_loss /= len(test_loader.dataset)
 
@@ -82,10 +84,10 @@ if __name__ == "__main__":
 
   torch.manual_seed(args.seed)
   model_savefile = "pose_interpolator.model"
+  model = PoseInterpolation(args.hidden_dim).to(args.gpu)
 
   if args.mode == 'inference':
     # Load model
-    model = PoseInterpolation(args.hidden_dim).to(args.gpu)
     model.load_state_dict(torch.load(model_savefile))
 
     # Load poses
@@ -98,6 +100,7 @@ if __name__ == "__main__":
     end_frame = None
     for pose in pose_files:
       pose = torch.from_numpy(pose).float().to(args.gpu)
+      print(pose.size(2))
       start_frame = pose[:,:,0]
       if end_frame is not None:
         x = torch.cat([end_frame.unsqueeze(0), start_frame.unsqueeze(0)], 0)

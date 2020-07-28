@@ -3,7 +3,7 @@ from tqdm import tqdm
 import os
 import numpy as np
 
-num_intermediate_frames = 10
+num_intermediate_frames = 20
 dataset_x = []
 dataset_y = []
 
