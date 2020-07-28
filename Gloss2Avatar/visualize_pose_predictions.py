@@ -72,16 +72,17 @@ def visualize_keypoints_on_video(keypoint_array):
 
     keypoint_video = np.zeros((keypoint_array.shape[0], img_height, img_width, 3))
     # The files this is based on are Liz_207, Liz_15602, Liz_15316, in that order
-    # Each has 31 frames -> (10 frame transition) -> 49 frames -> (10 frames transition) -> 41 frames
-    # predicted_points has 141 frames (matches with the above)
+    # Each has 31 frames -> (20 frame transition) -> 49 frames -> (20 frames transition) -> 41 frames
+    # predicted_points has 161 frames (matches with the above)
+    tran_length = 20 # in number of frames
     keypoint_video[:31,:,:,:] = np.load('data/RawData/npy_dir/Liz_207_raw.npy')
-    keypoint_video[31+10:31+10+49,:,:,:] = np.load('data/RawData/npy_dir/Liz_15602_raw.npy')
-    keypoint_video[31+10+49+10:31+10+49+10+41,:,:,:] = np.load('data/RawData/npy_dir/Liz_15316_raw.npy')
+    keypoint_video[31+tran_length:31+tran_length+49,:,:,:] = np.load('data/RawData/npy_dir/Liz_15602_raw.npy')
+    keypoint_video[31+tran_length+49+tran_length:31+tran_length+49+tran_length+41,:,:,:] = np.load('data/RawData/npy_dir/Liz_15316_raw.npy')
     # Fill in gaps by copying the end frame of the previous pose 5 times and start frame of next pose 5 times
-    keypoint_video[31:31+5,:,:,:] = keypoint_video[31-1,:,:,:]
-    keypoint_video[31+10+49:31+10+49+5,:,:,:] = keypoint_video[31+10+49-1,:,:,:]
-    keypoint_video[31+5:31+10,:,:,:] = keypoint_video[31+10,:,:,:]
-    keypoint_video[31+10+49+5:31+10+49+10,:,:,:] = keypoint_video[31+10+49+10,:,:,:]
+    keypoint_video[31:31+tran_length//2,:,:,:] = keypoint_video[31-1,:,:,:]
+    keypoint_video[31+tran_length+49:31+tran_length+49+tran_length//2,:,:,:] = keypoint_video[31+tran_length+49-1,:,:,:]
+    keypoint_video[31+tran_length//2:31+tran_length,:,:,:] = keypoint_video[31+tran_length,:,:,:]
+    keypoint_video[31+tran_length+49+tran_length//2:31+tran_length+49+tran_length,:,:,:] = keypoint_video[31+tran_length+49+tran_length,:,:,:]
     keypoint_video = np.transpose(keypoint_video, (0,3,1,2))
     for idx in tqdm(range(num_output_frames)):        
         # First, pose keypoints
