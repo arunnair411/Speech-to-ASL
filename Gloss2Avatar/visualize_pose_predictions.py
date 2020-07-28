@@ -13,6 +13,18 @@ num_pose_keypoints = 25
 num_face_keypoints = 70
 num_hand_keypoints = 21*2
 
+def create_disk(canvas, idx, keypoint_array_pixels, r, keypoint_generator):
+    for jdx in keypoint_generator:
+        y = keypoint_array_pixels[idx, jdx, 1]
+        x = keypoint_array_pixels[idx, jdx, 0]
+        rr, cc = disk((y, x), 5)
+        rr[rr<0]=0
+        rr[rr>=img_height]=img_height-1
+        cc[cc<0]=0
+        cc[cc>=img_width]=img_width-1
+        canvas[rr, cc] = 255
+
+
 def visualize_keypoints(keypoint_array):
     # keypoint_array is assumed to be a 141*137*3 array
     num_output_frames = keypoint_array.shape[0]
@@ -24,34 +36,16 @@ def visualize_keypoints(keypoint_array):
     keypoint_video = np.transpose(keypoint_video, (0,3,1,2))
     for idx in tqdm(range(num_output_frames)):        
         # First, pose keypoints
-        canvas = np.zeros((img_height, img_width), dtype=np.float)
-        for jdx in range(num_pose_keypoints):
-            rr, cc = disk((keypoint_array_pixels[idx, jdx, 1], keypoint_array_pixels[idx, jdx, 0]), 5)
-            rr[rr<0]=0
-            rr[rr>=img_height]=img_height-1
-            cc[cc<0]=0
-            cc[cc>=img_width]=img_width-1
-            canvas[rr, cc] = 255
+        canvas = np.zeros((img_height, img_width), dtype=np.float)                
+        create_disk(canvas, idx, keypoint_array_pixels, 5, range(num_pose_keypoints))
         keypoint_video[idx][2][np.where(canvas>0)] = canvas[np.where(canvas>0)]
         # Second, face keypoints
         canvas = np.zeros((img_height, img_width), dtype=np.float)
-        for jdx in range(25, 25+num_face_keypoints):
-            rr, cc = disk((keypoint_array_pixels[idx, jdx, 1], keypoint_array_pixels[idx, jdx, 0]), 3)
-            rr[rr<0]=0
-            rr[rr>=img_height]=img_height-1
-            cc[cc<0]=0
-            cc[cc>=img_width]=img_width-1
-            canvas[rr, cc] = 255
+        create_disk(canvas, idx, keypoint_array_pixels, 3, range(25, 25+num_face_keypoints))
         keypoint_video[idx][1][np.where(canvas>0)] = canvas[np.where(canvas>0)]
         # Third, hand keypoints
         canvas = np.zeros((img_height, img_width), dtype=np.float)
-        for jdx in range(25+70, 25+70+num_hand_keypoints):
-            rr, cc = disk((keypoint_array_pixels[idx, jdx, 1], keypoint_array_pixels[idx, jdx, 0]), 3)
-            rr[rr<0]=0
-            rr[rr>=img_height]=img_height-1
-            cc[cc<0]=0
-            cc[cc>=img_width]=img_width-1
-            canvas[rr, cc] = 255
+        create_disk(canvas, idx, keypoint_array_pixels, 3, range(25+70, 25+70+num_hand_keypoints))
         keypoint_video[idx][0][np.where(canvas>0)] = canvas[np.where(canvas>0)]
     
     # Write it to a video
@@ -83,6 +77,7 @@ def visualize_keypoints_on_video(keypoint_array):
     keypoint_video[:31,:,:,:] = np.load('data/RawData/npy_dir/Liz_207_raw.npy')
     keypoint_video[31+10:31+10+49,:,:,:] = np.load('data/RawData/npy_dir/Liz_15602_raw.npy')
     keypoint_video[31+10+49+10:31+10+49+10+41,:,:,:] = np.load('data/RawData/npy_dir/Liz_15316_raw.npy')
+    # Fill in gaps by copying the end frame of the previous pose 5 times and start frame of next pose 5 times
     keypoint_video[31:31+5,:,:,:] = keypoint_video[31-1,:,:,:]
     keypoint_video[31+10+49:31+10+49+5,:,:,:] = keypoint_video[31+10+49-1,:,:,:]
     keypoint_video[31+5:31+10,:,:,:] = keypoint_video[31+10,:,:,:]
@@ -91,37 +86,16 @@ def visualize_keypoints_on_video(keypoint_array):
     for idx in tqdm(range(num_output_frames)):        
         # First, pose keypoints
         canvas = np.zeros((img_height, img_width), dtype=np.float)
-        for jdx in range(num_pose_keypoints):
-            rr, cc = disk((keypoint_array_pixels[idx, jdx, 1], keypoint_array_pixels[idx, jdx, 0]), 5)
-            rr[rr<0]=0
-            rr[rr>=img_height]=img_height-1
-            cc[cc<0]=0
-            cc[cc>=img_width]=img_width-1
-            canvas[rr, cc] = 255
-        # keypoint_video[idx][2][np.where(canvas>0)] = canvas[np.where(canvas>0)]
-        keypoint_video[idx][2][np.where(canvas>0)] = 255
+        create_disk(canvas, idx, keypoint_array_pixels, 5, range(num_pose_keypoints))
+        keypoint_video[idx][2][np.where(canvas>0)] = canvas[np.where(canvas>0)]
         # Second, face keypoints
         canvas = np.zeros((img_height, img_width), dtype=np.float)
-        for jdx in range(25, 25+num_face_keypoints):
-            rr, cc = disk((keypoint_array_pixels[idx, jdx, 1], keypoint_array_pixels[idx, jdx, 0]), 3)
-            rr[rr<0]=0
-            rr[rr>=img_height]=img_height-1
-            cc[cc<0]=0
-            cc[cc>=img_width]=img_width-1
-            canvas[rr, cc] = 255
-        # keypoint_video[idx][1][np.where(canvas>0)] = canvas[np.where(canvas>0)]
-        keypoint_video[idx][1][np.where(canvas>0)] = 255
+        create_disk(canvas, idx, keypoint_array_pixels, 3, range(25, 25+num_face_keypoints))
+        keypoint_video[idx][1][np.where(canvas>0)] = canvas[np.where(canvas>0)]
         # Third, hand keypoints
         canvas = np.zeros((img_height, img_width), dtype=np.float)
-        for jdx in range(25+70, 25+70+num_hand_keypoints):
-            rr, cc = disk((keypoint_array_pixels[idx, jdx, 1], keypoint_array_pixels[idx, jdx, 0]), 3)
-            rr[rr<0]=0
-            rr[rr>=img_height]=img_height-1
-            cc[cc<0]=0
-            cc[cc>=img_width]=img_width-1
-            canvas[rr, cc] = 255
-        # keypoint_video[idx][0][np.where(canvas>0)] = canvas[np.where(canvas>0)]
-        keypoint_video[idx][0][np.where(canvas>0)] = 255
+        create_disk(canvas, idx, keypoint_array_pixels, 3, range(25+70, 25+70+num_hand_keypoints))
+        keypoint_video[idx][0][np.where(canvas>0)] = canvas[np.where(canvas>0)]
     
     # Write it to a video
     keypoint_video = np.transpose(keypoint_video, (0,2,3,1))
