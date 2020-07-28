@@ -95,15 +95,15 @@ if __name__ == "__main__":
 
     # Stitch poses together
     pose_list = []
-    start_frame = None
+    end_frame = None
     for pose in pose_files:
       pose = torch.from_numpy(pose).float().to(args.gpu)
-      if start_frame is not None:
+      start_frame = pose[:,:,0]
+      if end_frame is not None:
         x = torch.cat([end_frame.unsqueeze(0), start_frame.unsqueeze(0)], 0)
         y = model(x.unsqueeze(0)) # we do it sequentially but can be done in parallel if need to optimize
         pose_list.append(y.squeeze(0))
       pose_list.append(pose.permute(2,0,1))
-      start_frame = pose[:,:,0]
       end_frame = pose[:,:,-1]
     pose_sequence = torch.cat(pose_list, 0)
     torch.save(pose_sequence, "car_she_drives.posesequence")
