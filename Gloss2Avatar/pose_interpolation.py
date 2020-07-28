@@ -112,6 +112,7 @@ if __name__ == "__main__":
     # Load data
     data = InterpolationDataset(args.dataset_path)
     if args.mode == 'experiment':
+      # Split data
       train_test_split = int(len(data) * args.train_test_split)
       indices = list(range(len(data)))
       train_idx, test_idx = indices[:train_test_split], indices[train_test_split:]
@@ -122,6 +123,7 @@ if __name__ == "__main__":
       test_loader = DataLoader(data, batch_size=args.batch_size, sampler=test_sampler,
           num_workers=args.num_workers, pin_memory=True)
     elif args.mode == 'train':
+      # Use all the data
       train_loader = DataLoader(data, batch_size=args.batch_size, shuffle=True,
           num_workers=args.num_workers, pin_memory=True)
 
