@@ -3,6 +3,11 @@
 # Resuming training
 # CUDA_VISIBLE_DEVICES=2 python train_v4.py --gpu-ids 0 --dataset=DNS-challenge-synthetic-test-expanded-cleanteledstored --data-loader-size=onesecond --data-loader-style=dns --store-dir=20200722_DNS-challenge-expanded_onesecond_unetseparableuros_LSDloss_cleantelecomDT  --resume --checkpoint=checkpoints/20200722_DNS-challenge-expanded_onesecond_unetseparableuros_LSDloss_cleantelecomDT/best_model.pt --architecture=unet1dk5s2 --in-chans=1 --normalization=batchnorm --criterion-g=maeloss --epochs=500 --batch-size=64 --test-batch-size=256 --adam-lr=1e-4 --adam-beta1=0.5 --adam-beta2=0.9 --lr-step-size=166 --lr-gamma=0.5 --teststats-save-interval=2 --checkpoint-interval=30
 ##############################################################################################################################################
+# train_v5.py
+# Expt0: Trial run
+# CUDA_VISIBLE_DEVICES=0 python train_v5.py --gpu-ids 0 --dataset=pose_npy_dir --store-dir=20200727_run0  --architecture=PoseInterpolatorFC --criterion-g=maeloss --epochs=500 --batch-size=128 --test-batch-size=1 --adam-lr=1e-4 --lr-step-size=500 --lr-gamma=0.5 --teststats-save-interval=1 --checkpoint-interval=30
+# Resuming training
+# CUDA_VISIBLE_DEVICES=2 python train_v4.py --gpu-ids 0 --dataset=DNS-challenge-synthetic-test-expanded-cleanteledstored --data-loader-size=onesecond --data-loader-style=dns --store-dir=20200722_DNS-challenge-expanded_onesecond_unetseparableuros_LSDloss_cleantelecomDT  --resume --checkpoint=checkpoints/20200722_DNS-challenge-expanded_onesecond_unetseparableuros_LSDloss_cleantelecomDT/best_model.pt --architecture=unet1dk5s2 --in-chans=1 --normalization=batchnorm --criterion-g=maeloss --epochs=500 --batch-size=64 --test-batch-size=256 --adam-lr=1e-4 --adam-beta1=0.5 --adam-beta2=0.9 --lr-step-size=166 --lr-gamma=0.5 --teststats-save-interval=2 --checkpoint-interval=30
 
 import numpy as np
 import random
@@ -21,7 +26,7 @@ import torchvision
 
 # U-Net related imports
 # from unet import GeneratorUnet1_1, GeneratorUnet1_1_FAIR, UNetSeparable_64_uros, UNetSeparable_64_uros_small, UNetSeparable_64_uros_small_5, UNetSeparable_64, UNetSeparable_16, visualize_neurons, UNet1Dk5s2, UNet1Dk5s2_siren, UNet1Dk15s4
-from models import PosePredictorFC, PosePredictorCNN
+from models import PoseInterpolatorFC, PoseInterpolatorCNN
 
 # Loss Function Imports
 from utils import DiceCoeffLoss, RMSELoss, LSDLoss
@@ -37,11 +42,12 @@ import sklearn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 # from utils import MyDataset, MyDataset_Kaz_Training_Raw, ApplySTFT, ApplyPacketLoss, ApplyTelecomDistortions, RandomSubsample, TFGapFillingMaskEstimation, ConcatMaskToInput, ToTensor
-from utils import PosePredictorFCDataset, PosePredictorCNNDataset, ToTensor
+# from utils import PoseInterpolatorFCDataset, PoseInterpolatorCNNDataset, ToTensor
+from utils import PoseInterpolatorFCDataset, ToTensor, PoseSubsampler
 
 # Validation/Testing data related inputs
 # from utils import eval_net
-from utils import eval_net_pose_predictor
+from utils import eval_net_pose_interpolator
 
 # Import NVIDIA AMP for mixed precision arithmetic
 try:
@@ -160,7 +166,7 @@ def evaluate(params, dataset_deets, epoch, g_net, criterion_g, data_loader, writ
     # Set the network to eval mode to freeze BatchNorm weights
     g_net.eval()
     start = time.perf_counter()
-    _maeloss, _mseloss, _rmseloss, _loss  = eval_net_pose_predictor(g_net, criterion_g, req_filenames, params, dataset_deets, data_string, data_loader)
+    _maeloss, _mseloss, _rmseloss, _loss  = eval_net_pose_interpolator(g_net, criterion_g, req_filenames, params, dataset_deets, data_string, data_loader)
 
     print(f"{data_string} MAE Score (Lower is better): {_maeloss}")
     print(f"{data_string} MSE Score (Lower is better): {_mseloss}")
@@ -231,7 +237,22 @@ def create_datasets(params):
         split_ = []
         for data_path in dataset_deets['data_path_list']:
             split_.extend(sorted(glob.glob(os.path.join(data_path,'*.npy'))))
+        
+        # TODO: Some glosses are shorter than 12 frames... removing them so there isn't an error
+        # '/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_16395.npy' - 11 frames
+        # '/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_295.npy    - 11 frames'
+        # '/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_359.npy    - 11 frames'
+        # '/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_602.npy    - 11 frames'
+        # '/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_605.npy    - 6  frames'
+        split_.remove('/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_16395.npy')
+        split_.remove('/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_295.npy')
+        split_.remove('/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_359.npy')
+        split_.remove('/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_602.npy')
+        split_.remove('/data2/t-arnair/projects/Speech-to-ASL/Gloss2Avatar/data/RawData/pose_npy_dir/Liz_605.npy')
+
         split_train, split_val_test = sklearn.model_selection.train_test_split(split_, test_size=0.2, random_state=1337)
+        # Make split_train longer by repeating it so epochs last slightly longer... this causes it to resample within the file multiple times
+        split_train = split_train * 50
         split_val, split_test = sklearn.model_selection.train_test_split(split_val_test, test_size=0.5, random_state=1337)
     else: 
         # Not a training dataset
@@ -248,7 +269,7 @@ def create_datasets(params):
     val_test_transforms_list =[]
     
     # First, if it is the FC pose prediction network
-    if params['dataset'] in ['pose_npy_dir'] and params['architecture'] in ['PosePredictorFC']:
+    if params['dataset'] in ['pose_npy_dir'] and params['architecture'] in ['PoseInterpolatorFC']:
         ## TRANSFORMS
         # edge_sample_length determines the number of known pose samples at each end, sample_gap is the number of pose frames to interpolate
         train_transforms_list.append(PoseSubsampler(edge_sample_length=1, sample_gap =10))
@@ -257,14 +278,14 @@ def create_datasets(params):
         val_test_transforms_list.append(ToTensor())
 
         ## DATASET
-        train_data = PosePredictorFCDataset(file_paths=split_train,
+        train_data = PoseInterpolatorFCDataset(file_paths=split_train,
                                 transform=transforms.Compose(train_transforms_list))
-        val_data   = PosePredictorFCDataset(file_paths=split_val,
+        val_data   = PoseInterpolatorFCDataset(file_paths=split_val,
                                 transform=transforms.Compose(val_test_transforms_list))
-        test_data  = PosePredictorFCDataset(file_paths=split_test,
+        test_data  = PoseInterpolatorFCDataset(file_paths=split_test,
                                 transform=transforms.Compose(val_test_transforms_list))
     # Second, if it is the CNN pose prediction network
-    elif params['dataset'] in ['pose_npy_dir'] and params['architecture'] in ['PosePredictorCNN']:
+    elif params['dataset'] in ['pose_npy_dir'] and params['architecture'] in ['PoseInterpolatorCNN']:
         ## TRANSFORMS
         train_transforms_list.append(PoseSubsampler(edge_sample_length=1, sample_gap =10))
         train_transforms_list.append(PointToHeatmapConverter())
@@ -273,11 +294,11 @@ def create_datasets(params):
         val_test_transforms_list.append(ToTensor())
 
         ## DATASET
-        train_data = PosePredictorCNNDataset(file_paths=split_train,
+        train_data = PoseInterpolatorCNNDataset(file_paths=split_train,
                                 transform=transforms.Compose(train_transforms_list))
-        val_data   = PosePredictorCNNDataset(file_paths=split_val,
+        val_data   = PoseInterpolatorCNNDataset(file_paths=split_val,
                                 transform=transforms.Compose(val_test_transforms_list))
-        test_data  = PosePredictorCNNDataset(file_paths=split_test,
+        test_data  = PoseInterpolatorCNNDataset(file_paths=split_test,
                                 transform=transforms.Compose(val_test_transforms_list))        
     req_filenames_dict = {'train': split_train, 'val': split_val, 'test': split_test}
     return train_data, val_data, test_data, dataset_deets, req_filenames_dict
@@ -291,11 +312,11 @@ def create_data_loaders(params):
     display_data = [val_data[i] for i in range(0, len(val_data), len(val_data) // 4)] 
 
     train_loader = DataLoader(dataset=train_data, batch_size=params['batch_size'],
-                                shuffle=True, num_workers= 10*len(params['gpu_ids']), pin_memory=True, drop_last=DROP_LAST) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
+                                shuffle=True, num_workers= 0*len(params['gpu_ids']), pin_memory=True, drop_last=DROP_LAST) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
     val_loader   = DataLoader(dataset=val_data, batch_size=params['test_batch_size'],
-                                num_workers= 10*len(params['gpu_ids']), pin_memory=True) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
+                                num_workers= 0*len(params['gpu_ids']), pin_memory=True) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
     test_loader  = DataLoader(dataset=test_data, batch_size=params['test_batch_size'],
-                                num_workers= 10*len(params['gpu_ids']), pin_memory=True) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
+                                num_workers= 0*len(params['gpu_ids']), pin_memory=True) # = 2*#GPUs as #GPUs didn't give 100% utilization for small files
     # train_loader = DataLoader(
     #     dataset=train_data,
     #     batch_size=args.batch_size,
@@ -346,12 +367,14 @@ def parse_args(args):
                         help='Path to an existing checkpoint. Used along with "--resume"')    
     parser.add_argument('--prng-seed', type=int, default=1337, metavar='S',
                         help='Seed for all the pseudo-random number generators')
-    parser.add_argument('--architecture', choices=['PosePredictorFC', 'PosePredictorCNN'], default='PosePredictorFC', type=str,
-                        help='PosePredictorFC|PosePredictorCNN')
+    parser.add_argument('--architecture', choices=['PoseInterpolatorFC', 'PoseInterpolatorCNN'], default='PoseInterpolatorFC', type=str,
+                        help='PoseInterpolatorFC|PoseInterpolatorCNN')
     parser.add_argument('--no-parallel', action='store_true', default=False,
                         help='Flag to prevent paralellization of the model across the GPUs')
     parser.add_argument('--in-chans', default=1, type=int, metavar='IC',
                         help='Number of input channels') # TODO - adapt this to set edge_sample_length and sample_gap
+    parser.add_argument('--num-hidden-layers', default=8, type=int, metavar='NH',
+                        help='Number of hidden layers')
     # parser.add_argument('--normalization', choices=['none','batchnorm','instancenorm'], default='batchnorm', type=str,
     #                     help='none|batchnorm|instancenorm') # TODO - adapt this according to Oscar's code...
     parser.add_argument('--criterion-g', choices=['dscloss','mseloss', 'rmseloss', 'maeloss', 'bceloss'], required=True,
@@ -403,7 +426,8 @@ def create_params_dict(parsed_args, device):
     params['architecture']      = parsed_args.architecture                # Set to 'og', 'fair', 'unetseparable_uros', 'unetseparable', 'unet1dk5s2', or 'unet1dk15s4' - determines the neural network architecture implementation
     params['no_parallel']       = parsed_args.no_parallel                 # Flag to prevent model paralellization across GPUs
     params['in_chans']          = parsed_args.in_chans                    # Number of input channels - defaults to 1
-    params['normalization']     = parsed_args.normalization               # Set to 'none', 'batchnorm', or 'instancenorm'
+    params['num_hidden_layers'] = parsed_args.num_hidden_layers           # Number of hidden layers for an FC network
+    # params['normalization']     = parsed_args.normalization               # Set to 'none', 'batchnorm', or 'instancenorm'
     params['criterion_g']       = parsed_args.criterion_g                 # DNN loss function
     params['epochs']            = parsed_args.epochs                      # Total number of training epochs i.e. complete passes of the training data
     params['batch_size']        = parsed_args.batch_size                  # Number of training files in one mini-batch
@@ -458,12 +482,12 @@ def seed_prng(parsed_args, device):
 ## Build the DNN model
 def build_model(parsed_args, device):
     # Initialize the neural network model
-    if parsed_args.architecture == 'PosePredictorFC':
-        # g_net = PosePredictorFC(in_chans=parsed_args.in_chans, out_chans=10, normalization = parsed_args.normalization) # TODO: Normalization?
-        g_net = PosePredictorFC(in_chans=parsed_args.in_chans, out_chans=10)
-    elif parsed_args.architecture == 'PosePredictorCNN':
-        # g_net = PosePredictorCNN(in_chans=parsed_args.in_chans, out_chans=10, chans=parsed_args.chans, normalization = parsed_args.normalization) # TODO: Chans and Normalization?
-        g_net = PosePredictorCNN(in_chans=parsed_args.in_chans, out_chans=10)
+    if parsed_args.architecture == 'PoseInterpolatorFC':
+        # g_net = PoseInterpolatorFC(in_chans=parsed_args.in_chans, out_chans=10, normalization = parsed_args.normalization) # TODO: Normalization?
+        g_net = PoseInterpolatorFC(num_hidden_layers=parsed_args.num_hidden_layers)
+    elif parsed_args.architecture == 'PoseInterpolatorCNN':
+        # g_net = PoseInterpolatorCNN(in_chans=parsed_args.in_chans, out_chans=10, chans=parsed_args.chans, normalization = parsed_args.normalization) # TODO: Chans and Normalization?
+        g_net = PoseInterpolatorCNN(in_chans=parsed_args.in_chans, out_chans=10)
     else:
         print('Unacceptable input arguments when building the network')
         sys.exit(0)
@@ -654,8 +678,7 @@ def main(args):
                 best_val_points = max(best_val_points, val_points)
                 save_model(parsed_args, params, epoch, g_net, optimizer_G, val_points, best_val_points, is_new_best)
                 logging.info(
-                    f'Epoch = [{epoch+1:4d}/{tot_epochs:4d}] TrainLoss = {train_loss:.4g} '
-                    f'DoNothingValPoints = {do_nothing_val_points:.4g} DoNothingTestPoints = {do_nothing_test_points:.4g} '
+                    f'Epoch = [{epoch+1:4d}/{tot_epochs:4d}] TrainLoss = {train_loss:.4g} '                    
                     f'ValPoints = {val_points:.4g} TestPoints = {test_points:.4g} '
                     f'TrainTime = {train_time:.4f}s ValTime = {val_time:.4f}s TestTime = {test_time:.4f}s',
                 )

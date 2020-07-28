@@ -30,7 +30,7 @@ import torchvision
 
 # U-Net related imports
 # from unet import GeneratorUnet1_1, GeneratorUnet1_1_FAIR, UNetSeparable_64_uros, UNetSeparable_64_uros_small, UNetSeparable_64_uros_small_5, UNetSeparable_64, UNetSeparable_16, visualize_neurons, UNet1Dk5s2, UNet1Dk5s2_siren, UNet1Dk15s4
-from models import PosePredictorFC, PosePredictorCNN
+from models import PoseInterpolatorFC, PoseInterpolatorCNN
 
 # Loss Function Imports
 from utils import DiceCoeffLoss, RMSELoss, LSDLoss
@@ -46,11 +46,11 @@ import sklearn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 # from utils import MyDataset, MyDataset_Kaz_Training_Raw, ApplySTFT, ApplyPacketLoss, ApplyTelecomDistortions, RandomSubsample, TFGapFillingMaskEstimation, ConcatMaskToInput, ToTensor
-from utils import PosePredictorFCDataset, PosePredictorCNNDataset, ToTensor
+from utils import PoseInterpolatorFCDataset, PoseInterpolatorCNNDataset, ToTensor
 
 # Validation/Testing data related inputs
 # from utils import eval_net
-from utils import eval_net_pose_predictor
+from utils import eval_net_pose_interpolator
 
 # Import NVIDIA AMP for mixed precision arithmetic
 try:

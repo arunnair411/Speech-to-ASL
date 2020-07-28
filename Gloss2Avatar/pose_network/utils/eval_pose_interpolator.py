@@ -18,7 +18,7 @@ PROCESSES = multiprocessing.cpu_count()//2
 
 from .custom_losses import dice_coeff, psnr_loss, RMSELoss, LSDLoss
 
-def eval_net_pose_predictor(g_net, criterion_g, split_filenames, params, dataset_deets, val_or_test_string, val_or_test_loader):
+def eval_net_pose_interpolator(g_net, criterion_g, split_filenames, params, dataset_deets, val_or_test_string, val_or_test_loader):
     # If test set results are to be stored, initialize the requisite variables
     
     tot_MAELoss = 0.
@@ -32,17 +32,17 @@ def eval_net_pose_predictor(g_net, criterion_g, split_filenames, params, dataset
     with torch.no_grad():
     # with torch.set_grad_enabled(False): # Alternatively
         for i, sample in enumerate(val_or_test_loader):
-            print(f"Current Test Idx is {i}")
+            # print(f"Current Test Idx is {i}")
             data = sample['data']
 
             edge_sample_length = 1 # MATCH TO train_v5.py, test_v5.py
             sample_gap = 10 # MATCH TO train_v5.py, test_v5.py            
             num_input_frames = 2*edge_sample_length
             num_output_frames = sample_gap
-            total_seq_frames = target_output.shape[1]
+            total_seq_frames = data.shape[1]
             input_data = torch.zeros(total_seq_frames-num_output_frames-num_input_frames+1, num_input_frames, 137, 3)
             target_output = torch.zeros(total_seq_frames-num_output_frames-num_input_frames+1, num_output_frames, 137, 3)
-            if params['architecture'] in ['PosePredictorFC']:
+            if params['architecture'] in ['PoseInterpolatorFC']:
                 for loop_idx in range(total_seq_frames-num_output_frames-num_input_frames+1): # Need to process the last frame separately
                     relevant_data = data[:,loop_idx:loop_idx+num_output_frames+num_input_frames,:,:]
                     target_output_single = relevant_data[:, edge_sample_length:-edge_sample_length, :, : ] # TODO: Check if you need detach() and clone() .detach().clone()
@@ -87,10 +87,10 @@ def eval_net_pose_predictor(g_net, criterion_g, split_filenames, params, dataset
                 output_dir = os.path.join(params['results_dir'], val_or_test_string)
                 os.makedirs(output_dir, exist_ok=True)                                
                 # 1 - Write the groundtruth file
-                output_filename_1 = os.path.join(output_dir, "".join(('groundtruth_', os.path.basename(file_name))))
+                output_filename_1 = os.path.join(output_dir, "".join(('groundtruth_', os.path.basename(sample['file_name']))))
                 np.save(output_filename_1, target_output.cpu().numpy())
                 # 2 - Write the predicted file
-                output_filename_2 = os.path.join(output_dir, "".join(('predicted_', os.path.basename(file_name))))
+                output_filename_2 = os.path.join(output_dir, "".join(('predicted_', os.path.basename(sample['file_name']))))
                 np.save(output_filename_2, preds.cpu().numpy())
 
     return (tot_MAELoss/running_counter, tot_MSELoss/running_counter, tot_RMSELoss/running_counter, tot_loss/running_counter)

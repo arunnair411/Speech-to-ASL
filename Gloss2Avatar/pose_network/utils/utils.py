@@ -12,7 +12,7 @@ import struct
 import torch
 from torch.utils.data import Dataset
 
-class PosePredictorFCDataset(Dataset):
+class PoseInterpolatorFCDataset(Dataset):
     """Pose Prediction Dataset."""
     def __init__(self, file_paths, transform=None):
         """
@@ -39,7 +39,7 @@ class PosePredictorFCDataset(Dataset):
         return sample
 
     def __len__(self):
-        return len(self.noisy_paths) # Should equal number of clean paths...        
+        return len(self.file_paths) # Should equal number of clean paths...        
 
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
@@ -53,7 +53,8 @@ class ToTensor(object):
             sample (dict): Dictionary data converted to torch tensors
         """
         for dict_key in sample.keys():
-            sample[dict_key] = torch.from_numpy(sample[dict_key].astype('float32'))
+            if type(sample[dict_key]) != str: # don't want to run tensorizationon the file name
+                sample[dict_key] = torch.from_numpy(sample[dict_key].astype('float32'))
         return sample
 
 class PoseSubsampler(object):
@@ -75,11 +76,13 @@ class PoseSubsampler(object):
         num_input_frames = 2*self.edge_sample_length
         num_output_frames = self.sample_gap
         last_possible_frame = total_seq_frames-num_output_frames-num_input_frames # inclusive of this
+        if last_possible_frame < 1:
+            pdb.set_trace()
         start_frame = random.randint(0, last_possible_frame)
 
         relevant_data = sample['data'][start_frame:start_frame+num_output_frames+num_input_frames, :, :]
         target_output_single = relevant_data[self.edge_sample_length:-self.edge_sample_length, :, : ]        
-        input_data_single = np.concatenate((relevant_data[:edge_sample_length, :, :], relevant_data[-edge_sample_length:, :, :]), dim=0)
+        input_data_single = np.concatenate((relevant_data[:self.edge_sample_length, :, :], relevant_data[-self.edge_sample_length:, :, :]), axis=0)
 
         sample = {'input_data': input_data_single, 'target_output': target_output_single}
         
