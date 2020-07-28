@@ -1,0 +1,40 @@
+running monolingual analysis... attention-is-all-you-need-pytorch/data/ASLG-PC12/sample-corpus-asl-en.en
+analysing corpus file: attention-is-all-you-need-pytorch/data/ASLG-PC12/sample-corpus-asl-en.en
+----------------------------------------------------
+# sentences: 87710
+Max. sentence size: 59 (words)
+Min. sentence size: 1 (words)
+Average sent. size: 13.12 (words)
+----------------------------------------------------
+# running words: 1151110
+Vocabulary size: 22071
+----------------------------------------------------
+8695 singletons (39.40%)
+2855 doubletons (12.94%)
+1514 tripletons (6.86%)
+9007 otherltons (40.81%)
+----------------------------------------------------
+!!!!!!!!
+WARNING! File attention-is-all-you-need-pytorch/data/ASLG-PC12/sample-corpus-asl-en.en contains sentences ending by blank_space
+!!!!!!!!
+
+
+running monolingual analysis... attention-is-all-you-need-pytorch/data/ASLG-PC12/sample-corpus-asl-en.asl
+analysing corpus file: attention-is-all-you-need-pytorch/data/ASLG-PC12/sample-corpus-asl-en.asl
+----------------------------------------------------
+# sentences: 87710
+Max. sentence size: 54 (words)
+Min. sentence size: 1 (words)
+Average sent. size: 11.74 (words)
+----------------------------------------------------
+# running words: 1029993
+Vocabulary size: 16120
+----------------------------------------------------
+6237 singletons (38.69%)
+1978 doubletons (12.27%)
+1088 tripletons (6.75%)
+6817 otherltons (42.29%)
+----------------------------------------------------
+!!!!!!!!
+WARNING! File attention-is-all-you-need-pytorch/data/ASLG-PC12/sample-corpus-asl-en.asl contains sentences ending by blank_space
+!!!!!!!!
