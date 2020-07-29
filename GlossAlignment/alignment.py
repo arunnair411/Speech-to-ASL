@@ -28,22 +28,35 @@ if __name__=="__main__":
     GLOSS_OUT_FP = "/data2/t-arnair/roshan/Speech-to-ASL/English2Gloss/glosses_for_poses.txt"
     LIZ_DATA = "/data2/t-arnair/roshan/GlossAlignment/Liz.data"
 
+    d = torch.load(LIZ_DATA)
+
     liz_data = torch.load(LIZ_DATA)['filename']
 
-    aligner = Alignment()
+    # aligner = Alignment()
+    aligner = Alignment("gloss_alignment_lemmatized.csv")
 
     g = open(GLOSS_OUT_FP, 'w')
 
     with open(GLOSS_IN_FP, 'r') as f:
         for line in f:
             tokens = line.replace('.', '').split()
+            print('\n')
+            print(line)
+            print(tokens)
             out = []
             for t in tokens:
                 s = aligner.find_match(t.upper())
+                print(s)
                 if s and s != "<UNK>":
                     r = liz_data[int(s)]
                     r = r.split('.')[0][4:]
                     out.append(r)
+
+                    print(t.upper())
+                    print(s)
+                    print(r)
+                    print('\n')
+
             g.write(','.join(out) + '\n')
     
     g.close()
