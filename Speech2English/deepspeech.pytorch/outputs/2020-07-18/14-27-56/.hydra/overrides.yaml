@@ -1,0 +1,2 @@
+- model.model_path=models/librispeech_pretrained_v2.pth
+- audio_path=/home/duntran/code/deepspeech.pytorch/audio/test_sentence.wav
