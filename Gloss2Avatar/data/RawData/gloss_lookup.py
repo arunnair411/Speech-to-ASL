@@ -3,11 +3,11 @@ import pdb
 metadata = torch.load('Liz.data')
 gloss_list = metadata['gloss']
 filename_list = metadata['filename']
-def find_str(l, pat):
- for i, s in enumerate(l):
-  if pat.lower() in str(s).lower():
-   return i
- return -1
+# def find_str(l, pat):
+#  for i, s in enumerate(l):
+#   if pat.lower() in str(s).lower():
+#    return i
+#  return -1
 
 # gloss_sequence = ['we','receive','documents']
 gloss_sequence = ['point-to','get', 'paper']
