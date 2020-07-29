@@ -3,6 +3,7 @@ from tqdm import tqdm
 import os
 import numpy as np
 import h5py
+from torch.nn import functional as F
 
 dataset_pose = []
 dataset_avatar = []
@@ -21,8 +22,11 @@ for file in tqdm(files):
   for frame_idx in range(num_frames-1):
     pose_pair = torch.from_numpy(pose_data[:,:,frame_idx:frame_idx+2]).float().permute(2,0,1)
     avatar_pair = torch.from_numpy(avatar_data[frame_idx:frame_idx+2,:,:,:]).float()
+    avatar_pair = avatar_pair.permute(0,3,1,2) # 2,3,480,480
+    avatar_pair = F.avg_pool2d(avatar_pair, 4, 4)
     dataset_pose.append(pose_pair.unsqueeze(0))
     dataset_avatar.append(avatar_pair.unsqueeze(0))
+  # break
 dataset_pose = torch.cat(dataset_pose, 0)
 dataset_avatar = torch.cat(dataset_avatar, 0)
 
