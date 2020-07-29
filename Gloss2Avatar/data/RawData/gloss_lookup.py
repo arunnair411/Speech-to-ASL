@@ -8,7 +8,7 @@ def find_str(l, pat):
    return i
  return -1
 
-gloss_sequence = ['car','she','drive']
+gloss_sequence = ['we','receive','documents']
 for g in gloss_sequence:
   print(filename_list[find_str(gloss_list, g)])
 

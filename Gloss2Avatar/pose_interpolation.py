@@ -72,6 +72,7 @@ if __name__ == "__main__":
   parser.add_argument('--dataset_path', type=str, default='interpolation.dataset')
   parser.add_argument('--pose_path', type=str, default='data/RawData/pose_npy_dir_avi')
   parser.add_argument('--pose_numbers', type=str, default='207,15602,15316', help="comma-separated pose numbers") # Car She Drives
+  parser.add_argument('--output_path', type=str, default='output.pose_sequence')
   parser.add_argument('--train_test_split', type=float, default=0.9)
   parser.add_argument('--epochs', type=int, default=100)
   parser.add_argument('--gpu', type=int, default=0)
@@ -109,7 +110,7 @@ if __name__ == "__main__":
       pose_list.append(pose.permute(2,0,1))
       end_frame = pose[:,:,-1]
     pose_sequence = torch.cat(pose_list, 0)
-    torch.save(pose_sequence, "car_she_drives.posesequence")
+    torch.save(pose_sequence, args.output_path)
     
   else:
     # Load data
