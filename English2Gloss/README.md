@@ -23,7 +23,9 @@ https://github.com/jadore801120/attention-is-all-you-need-pytorch
 ### 1) Download dependencies.
 ```bash
 virtualenv env
+source env/bin/activate
 pip install -r requirements.txt
+python -m spacy download en_core_web_sm
 ```
 
 ### 2) Download the trained eng2gloss model
