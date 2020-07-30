@@ -2,6 +2,8 @@
 python Speech2English/convert_speech_to_english.py --audio data/example_spoken_english.wav --text data/english_text.txt
 # english2gloss
 python English2Gloss/translate.py -data_pkl English2Gloss/eng2gloss_data.pkl -model English2Gloss/trained.chkpt -input data/english_text.txt -output data/asl_gloss_text.txt
+# align glosses to poses
+
 # gloss to individual poses
 
 # pose interpolation
