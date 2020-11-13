@@ -138,7 +138,7 @@ srsly==1.0.2
 ssh-import-id==5.7
 tensorboard==1.15.0
 tensorflow-estimator==1.15.1
-tensorflow-gpu==1.15.3
+tensorflow-gpu==2.3.1
 tensorflow-serving-api==1.15.0
 termcolor==1.1.0
 Theano==1.0.4
