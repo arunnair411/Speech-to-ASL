@@ -115,7 +115,7 @@ python-Levenshtein==0.12.0
 pytools==2017.6
 pytz==2020.1
 PyWavelets==0.5.1
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==19.0.1
 requests==2.24.0
 requests-unixsocket==0.1.5
