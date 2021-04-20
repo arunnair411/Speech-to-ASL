@@ -94,7 +94,7 @@ preshed==3.0.2
 prompt-toolkit==3.0.5
 protobuf==3.12.4
 ptyprocess==0.6.0
-py==1.9.0
+py==1.10.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycodestyle==2.3.1
