@@ -155,7 +155,7 @@ tqdm==4.48.0
 traitlets==4.3.3
 typing-extensions==3.7.4.2
 ufw==0.36
-urllib3==1.25.10
+urllib3==1.26.5
 virtualenv==15.1.0
 visdom==0.1.8.9
 wasabi==0.7.1
