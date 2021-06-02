@@ -33,7 +33,7 @@ torch==1.5.1
 torchtext==0.6.0
 tqdm==4.48.0
 traitlets==4.3.3
-urllib3==1.25.10
+urllib3==1.26.5
 wasabi==0.7.1
 wcwidth==0.2.5
 zipp==3.1.0
