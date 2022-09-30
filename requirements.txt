@@ -53,7 +53,7 @@ ipython-genutils==0.2.0
 itsdangerous==1.1.0
 jedi==0.17.2
 Jinja2==2.11.2
-joblib==0.16.0
+joblib==1.2.0
 jsonpatch==1.26
 jsonpointer==2.0
 jsonschema==2.6.0
